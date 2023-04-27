@@ -1,7 +1,20 @@
-#This is a sample Image 
-FROM ubuntu 
-MAINTAINER demousr@gmail.com 
+FROM python:3.7-slim
 
-RUN apt-get update 
-RUN apt-get install –y nginx 
-CMD [“echo”,”Image created”] 
+ENV PYTHONUNBUFFERED 1
+
+RUN apt-get update \
+    && apt-get install -y netcat postgresql-client \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /app
+
+COPY Pipfile*  /app/
+RUN pip install pipenv && \
+    pipenv install --system --deploy --ignore-pipfile
+
+COPY docker-entrypoint.sh /app/
+RUN chmod +x docker-entrypoint.sh
+
+COPY . /app/
+
+CMD ["sh", "/app/docker-entrypoint.sh"]
